@@ -196,7 +196,7 @@ void XOR(bits& X, bits Y, bits Z, int size) {
 	}
 }
 
-bool F(bits& next, bits R, bits key) {
+void F(bits& next, bits R, bits key) {
 	//E
 	bits ER;
 	for (int i=0; i<48; i++){
@@ -204,17 +204,18 @@ bool F(bits& next, bits R, bits key) {
 	}
 	//ER xor key
 	XOR(ER, ER, key, 48);
-
+	//SER
 	bits SER;
+	int j = 0, k = 0;
 	for (int i = 0, j = 0, k = 0; i < 48; i += 6) {
-		int val = s_box[j][ ER.bit[i]<<5 | ER.bit[i+5]<<4 | ER.bit[i+1]<<3 | ER.bit[i+2]<<2 | ER.bit[i+3]<<1 | ER.bit[i+4] ];
+		int x = s_box[j][ ER.bit[i]<<5 | ER.bit[i+5]<<4 | ER.bit[i+1]<<3 | ER.bit[i+2]<<2 | ER.bit[i+3]<<1 | ER.bit[i+4] ];
 		j++;
 		for (int o = 1 << 3; o > 0; o = o >> 1){
-			SER.bit[k] = (val & o) ? 1 : 0;
+			SER.bit[k] = (x & o) ? 1 : 0;
 			k++;
 		}
 	}
-
+	//PSER
 	for (int i=0; i<32; i++){
 		next.bit[i] = SER.bit[ P[i] - 1];
 	}
@@ -346,7 +347,7 @@ int main(){
 			S_txt.push_back(s[i]);
 		}
 		 
-	//cout << '\n';
+		//cout << '\n';
 		ASCIItoBit(S_key, key);
 		ASCIItoBit(S_txt, txt);
 		//generate 16 key
