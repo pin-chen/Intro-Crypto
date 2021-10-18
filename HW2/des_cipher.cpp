@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <map>
 using namespace std;
 
 struct bits{
@@ -8,6 +9,7 @@ struct bits{
 };
 
 string HEX = "0123456789ABCDEF";
+map<char, int> HEX_I = { {'0',0}, {'1',1}, {'2',2}, {'3',3}, {'4',4}, {'5',5}, {'6',6}, {'7',7}, {'8',8}, {'9',9}, {'A',10}, {'B',11}, {'C',12}, {'D',13}, {'E',14}, {'F',15}};
 
 int IP[64] = {
 	58, 50, 42, 34, 26, 18, 10, 2,
@@ -109,7 +111,8 @@ int PC2[48] = {
 bits key16[16];
 
 void ASCIItoBit(string s, bits& temp){
-	for(int i = 0, k = 0; i < 8; i++){
+	int k = 0;
+	for(int i = 0; i < 8; i++){
 		for(int j = 1 << 7; j > 0; j = j >> 1) {
 			temp.bit[k] = (s[i] & j) ? 1 : 0;
 			//cout << temp.bit[k];
@@ -119,11 +122,39 @@ void ASCIItoBit(string s, bits& temp){
 	//cout << '\n';
 }
 
-void BitToASCII(string& s, bits temp){
+void BittoASCII(string& s, bits temp){
 	s.clear();
-	for (int i = 0; i < 64; i += 4){
+	for(int i = 0; i < 64; i += 8){
+		//cout << temp.bit[i + 0] << temp.bit[i + 1] << temp.bit[i + 2] << temp.bit[i + 3] <<  temp.bit[i + 4] << temp.bit[i + 5] << temp.bit[i + 6] <<temp.bit[i + 7] ;
+		//cout << char(temp.bit[i + 0] << 7 | temp.bit[i + 1] << 6 | temp.bit[i + 2] << 5 | temp.bit[i + 3] << 4 | temp.bit[i + 4] << 3 | temp.bit[i + 5] << 2 | temp.bit[i + 6] << 1 | temp.bit[i + 7] << 0);
+		//cout << '\n';
+		s.push_back(char(temp.bit[i + 0] << 7 | temp.bit[i + 1] << 6 | temp.bit[i + 2] << 5 | temp.bit[i + 3] << 4 | temp.bit[i + 4] << 3 | temp.bit[i + 5] << 2 | temp.bit[i + 6] << 1 | temp.bit[i + 7] << 0));
+		//cout << s[i];
+	}
+	//cout << '\n';
+}
+
+void BitToHEX(string& s, bits temp){
+	s.clear();
+	for(int i = 0; i < 64; i += 4){
 		s.push_back(HEX[temp.bit[i + 0] << 3 | temp.bit[i + 1] << 2 | temp.bit[i + 2] << 1 | temp.bit[i + 3] << 0]);
 	}
+}
+
+void HEXToBit(string s, bits& temp){
+	int k =0;
+	for(int i = 0; i < 16; i++){
+		for(int j = 1 << 3; j > 0; j = j >> 1) {
+			temp.bit[k] = (HEX_I[s[i]] & j) ? 1 : 0;
+			//cout << s[i];
+			//cout << HEX_I[s[i]];
+			//cout << temp.bit[k];
+			k++;
+		}
+	}
+	//cout <<'\n';
+	//cout << k;
+	//cout << '\n';
 }
 
 void shiftkey(bits& key){
@@ -191,18 +222,56 @@ bool F(bits& next, bits R, bits key) {
 
 
 
-void des_dec(bits cipher, bits key, bits& text){
+void des_dec(bits cipher, bits& txt){
+	bits temp;
+	//IP
+	for (int i = 0; i < 64; i++){
+		temp.bit[i] = cipher.bit[ IP[i] - 1];
+	}
+	for (int i = 0; i < 64; i++){
+		cipher.bit[i] = temp.bit[i];
+	}
 	
 	
+	
+	//16 round F and XOR key 16~1
+	for (int k = 15; k >= 0; k--) {
+		bits tempR, tempL;
+		for(int i = 0; i < 32; i++){
+			tempL.bit[i] = cipher.bit[i];
+		}
+		for(int i = 0; i < 32; i++){
+			tempR.bit[i] = cipher.bit[i + 32];
+		}
+		
+		F(temp, tempR, key16[k]);
+		XOR(temp, tempL, temp, 32);
+		
+		for(int i = 0; i < 32; i++){
+			cipher.bit[i] = tempR.bit[i];
+		}
+		for(int i = 0; i < 32; i++){
+			cipher.bit[i + 32] = temp.bit[i];
+		}
+	}
+	
+	//32-bit swap
+	for(int i = 0; i < 32; i++){
+		temp.bit[i] = cipher.bit[i];
+	}
+	for(int i = 0; i < 32; i++){
+		cipher.bit[i] = cipher.bit[i + 32];
+	}
+	for(int i = 32; i < 64; i++){
+		cipher.bit[i] = temp.bit[i - 32];
+	}
 	
 	//FP
-	
-	//16tmies F and XOR key 16~1
-	
-	//IP
-	
-	//
-	return;
+	for (int i=0; i<64; i++){
+		txt.bit[i] = cipher.bit[ FP[i] - 1 ];
+		//cout << txt.bit[i];
+	}
+	//cout << '\n';
 }
 
 void des_enc(bits& cipher, bits txt){
@@ -215,7 +284,7 @@ void des_enc(bits& cipher, bits txt){
 		txt.bit[i] = temp.bit[i];
 	}
 	//16 round F and XOR key 1~16
-	for (int i = 0; i < 16; i++) {
+	for (int k = 0; k < 16; k++) {
 		bits tempR, tempL;
 		for(int i = 0; i < 32; i++){
 			tempL.bit[i] = txt.bit[i];
@@ -224,7 +293,7 @@ void des_enc(bits& cipher, bits txt){
 			tempR.bit[i] = txt.bit[i + 32];
 		}
 		
-		F(temp, tempR, key16[i]);
+		F(temp, tempR, key16[k]);
 		XOR(temp, tempL, temp, 32);
 		
 		for(int i = 0; i < 32; i++){
@@ -252,25 +321,32 @@ void des_enc(bits& cipher, bits txt){
 	}
 }
 
+void ENC(){
+	
+}
 
 int main(){
-	ifstream in("DES-Key-Plaintext.txt");
-	ofstream out("des-out_cipher.txt");
-	ofstream test("key_me.txt",ios::out);
+	//ifstream in("Plaintext.txt");
+	//ofstream out("test-out.txt");
+	ifstream in("DES-Key-Ciphertext.txt");
+	ofstream out("des-out.txt");
+	//ofstream test("key_me.txt",ios::out);
 	string S_key, S_txt, S_cipher;
 	string s;
 	bits key, txt, cipher;
 	
 	int i;
 	while( getline(in, s) ){
-		
+		/*
+		//ENC
 		for(i = 0; i < 8; i++){
 			S_key.push_back(s[i]);
 		}
 		for(i = 9; i < 17; i++){
 			S_txt.push_back(s[i]);
 		}
-		//cout << '\n';
+		 
+	//cout << '\n';
 		ASCIItoBit(S_key, key);
 		ASCIItoBit(S_txt, txt);
 		//generate 16 key
@@ -281,14 +357,31 @@ int main(){
 		//	}
 		//	test << '\n';
 		//}
-	//	for(i=0;i<500;i++)des_enc(cipher, txt);
 		des_enc(cipher, txt);
-		BitToASCII(S_cipher, cipher);
-		
+		BitToHEX(S_cipher, cipher);
 		cout << S_key << " " << S_txt << " " << S_cipher << '\n';
+		*/
+		
+		//DEC
+		//cout << s << '\n';
+		for(i = 0; i < 8; i++){
+			S_key.push_back(s[i]);
+		}
+		for(i = 9; i < 25; i++){
+			S_cipher.push_back(s[i]);
+		}
+		ASCIItoBit(S_key, key);
+		HEXToBit(S_cipher, cipher);
+		GenerateKey(key);
+		des_dec(cipher, txt);
+		BittoASCII(S_txt, txt);
+		//cout << "a" << '\n';
+		//cout << S_key << " " << S_cipher << " " << S_txt << '\n';
+		out << S_txt << '\n';
 		
 		S_key.clear();
 		S_txt.clear();
+		S_cipher.clear(); 
 	}
 	return 0;
 } 
