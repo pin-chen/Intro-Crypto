@@ -115,23 +115,16 @@ void ASCIItoBit(string s, bits& temp){
 	for(int i = 0; i < 8; i++){
 		for(int j = 1 << 7; j > 0; j = j >> 1) {
 			temp.bit[k] = (s[i] & j) ? 1 : 0;
-			//cout << temp.bit[k];
 			k++;
 		}
-	}	
-	//cout << '\n';
+	}
 }
 
 void BittoASCII(string& s, bits temp){
 	s.clear();
 	for(int i = 0; i < 64; i += 8){
-		//cout << temp.bit[i + 0] << temp.bit[i + 1] << temp.bit[i + 2] << temp.bit[i + 3] <<  temp.bit[i + 4] << temp.bit[i + 5] << temp.bit[i + 6] <<temp.bit[i + 7] ;
-		//cout << char(temp.bit[i + 0] << 7 | temp.bit[i + 1] << 6 | temp.bit[i + 2] << 5 | temp.bit[i + 3] << 4 | temp.bit[i + 4] << 3 | temp.bit[i + 5] << 2 | temp.bit[i + 6] << 1 | temp.bit[i + 7] << 0);
-		//cout << '\n';
 		s.push_back(char(temp.bit[i + 0] << 7 | temp.bit[i + 1] << 6 | temp.bit[i + 2] << 5 | temp.bit[i + 3] << 4 | temp.bit[i + 4] << 3 | temp.bit[i + 5] << 2 | temp.bit[i + 6] << 1 | temp.bit[i + 7] << 0));
-		//cout << s[i];
 	}
-	//cout << '\n';
 }
 
 void BitToHEX(string& s, bits temp){
@@ -142,19 +135,13 @@ void BitToHEX(string& s, bits temp){
 }
 
 void HEXToBit(string s, bits& temp){
-	int k =0;
+	int k = 0;
 	for(int i = 0; i < 16; i++){
 		for(int j = 1 << 3; j > 0; j = j >> 1) {
 			temp.bit[k] = (HEX_I[s[i]] & j) ? 1 : 0;
-			//cout << s[i];
-			//cout << HEX_I[s[i]];
-			//cout << temp.bit[k];
 			k++;
 		}
 	}
-	//cout <<'\n';
-	//cout << k;
-	//cout << '\n';
 }
 
 void shiftkey(bits& key){
@@ -186,7 +173,7 @@ void GenerateKey(bits key){
 		}
 		for(int j = 0; j < 48; j++){
 			key16[i].bit[j] = key_PC1.bit[ PC2[j] - 1];
-		}	
+		} 
 	}
 }
 
@@ -221,8 +208,6 @@ void F(bits& next, bits R, bits key) {
 	}
 }
 
-
-
 void des_dec(bits cipher, bits& txt){
 	bits temp;
 	//IP
@@ -232,9 +217,6 @@ void des_dec(bits cipher, bits& txt){
 	for (int i = 0; i < 64; i++){
 		cipher.bit[i] = temp.bit[i];
 	}
-	
-	
-	
 	//16 round F and XOR key 16~1
 	for (int k = 15; k >= 0; k--) {
 		bits tempR, tempL;
@@ -255,7 +237,6 @@ void des_dec(bits cipher, bits& txt){
 			cipher.bit[i + 32] = temp.bit[i];
 		}
 	}
-	
 	//32-bit swap
 	for(int i = 0; i < 32; i++){
 		temp.bit[i] = cipher.bit[i];
@@ -266,13 +247,10 @@ void des_dec(bits cipher, bits& txt){
 	for(int i = 32; i < 64; i++){
 		cipher.bit[i] = temp.bit[i - 32];
 	}
-	
 	//FP
 	for (int i=0; i<64; i++){
 		txt.bit[i] = cipher.bit[ FP[i] - 1 ];
-		//cout << txt.bit[i];
 	}
-	//cout << '\n';
 }
 
 void des_enc(bits& cipher, bits txt){
@@ -304,7 +282,6 @@ void des_enc(bits& cipher, bits txt){
 			txt.bit[i + 32] = temp.bit[i];
 		}
 	}
-	
 	//32-bit swap
 	for(int i = 0; i < 32; i++){
 		temp.bit[i] = txt.bit[i];
@@ -315,71 +292,64 @@ void des_enc(bits& cipher, bits txt){
 	for(int i = 32; i < 64; i++){
 		txt.bit[i] = temp.bit[i - 32];
 	}
-	
 	//FP
 	for (int i=0; i<64; i++){
 		cipher.bit[i] = txt.bit[ FP[i] - 1 ];
 	}
 }
 
-void ENC(){
-	
-}
-
 int main(){
-	//ifstream in("Plaintext.txt");
-	//ofstream out("test-out.txt");
-	ifstream in("DES-Key-Ciphertext.txt");
-	ofstream out("des-out.txt");
-	//ofstream test("key_me.txt",ios::out);
-	string S_key, S_txt, S_cipher;
-	string s;
+	ifstream inP("DES-Key-Plaintext.txt");
+	ifstream inC("DES-Key-Ciphertext.txt");
+	ofstream outP("des-out-Ciphertext.txt");
+	ofstream outC("des-out-Plaintext.txt");
+	string S_key, S_txt, S_cipher, s;
 	bits key, txt, cipher;
-	
 	int i;
-	while( getline(in, s) ){
-		/*
-		//ENC
+	while( getline(inP, s) ){//ENC
+		//input
 		for(i = 0; i < 8; i++){
 			S_key.push_back(s[i]);
 		}
 		for(i = 9; i < 17; i++){
 			S_txt.push_back(s[i]);
 		}
-		 
-		//cout << '\n';
+		//change to bits
 		ASCIItoBit(S_key, key);
 		ASCIItoBit(S_txt, txt);
 		//generate 16 key
 		GenerateKey(key);
-		//for(int i = 0; i < 16; i++){
-		//	for(int j = 0; j < 48; j++){
-		//		test << key16[i].bit[j];
-		//	}
-		//	test << '\n';
-		//}
+		//enc
 		des_enc(cipher, txt);
+		//change to HEX
 		BitToHEX(S_cipher, cipher);
-		cout << S_key << " " << S_txt << " " << S_cipher << '\n';
-		*/
-		
-		//DEC
-		//cout << s << '\n';
+		//output
+		outP << S_key << " " << S_txt << " " << S_cipher << '\n';
+		//clear
+		S_key.clear();
+		S_txt.clear();
+		S_cipher.clear(); 
+	}
+	while( getline(inC, s) ){//DEC
+		//input
 		for(i = 0; i < 8; i++){
 			S_key.push_back(s[i]);
 		}
 		for(i = 9; i < 25; i++){
 			S_cipher.push_back(s[i]);
 		}
+		//change to bits
 		ASCIItoBit(S_key, key);
 		HEXToBit(S_cipher, cipher);
+		//generate 16 key
 		GenerateKey(key);
+		//dec
 		des_dec(cipher, txt);
+		//change to ASCII
 		BittoASCII(S_txt, txt);
-		//cout << "a" << '\n';
-		//cout << S_key << " " << S_cipher << " " << S_txt << '\n';
-		out << S_txt << '\n';
-		
+		//output
+		outC << S_key << " " << S_cipher << " " << S_txt << '\n';
+		//clear
 		S_key.clear();
 		S_txt.clear();
 		S_cipher.clear(); 
