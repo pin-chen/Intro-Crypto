@@ -301,8 +301,8 @@ void des_enc(bits& cipher, bits txt){
 int main(){
 	ifstream inP("DES-Key-Plaintext.txt");
 	ifstream inC("DES-Key-Ciphertext.txt");
-	ofstream outP("des-out-Ciphertext.txt");
-	ofstream outC("des-out-Plaintext.txt");
+	ofstream outP("des-out-enc.txt");
+	ofstream outC("des-out-dec.txt");
 	string S_key, S_txt, S_cipher, s;
 	bits key, txt, cipher;
 	int i;
