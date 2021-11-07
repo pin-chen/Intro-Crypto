@@ -1,3 +1,6 @@
+// Class: 1101 密碼學概論 曾文貴
+// Author: 陳品劭 109550206
+// Date: 20211107
 #define _CRT_SECURE_NO_WARNINGS
 #define checker 0
 #define ans 457301

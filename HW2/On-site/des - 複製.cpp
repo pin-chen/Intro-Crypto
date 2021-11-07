@@ -1,3 +1,6 @@
+// Class: 1101 密碼學概論 曾文貴
+// Author: 陳品劭 109550206
+// Date: 20211019
 #include <iostream>
 #include <fstream>
 #include <string>
